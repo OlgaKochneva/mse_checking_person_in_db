@@ -12,9 +12,8 @@ class App:
         if re.match(r'((.*\.(mp4|avi)$|\d+))', video_source) is None:
             msg('err',
                 'Please, specify the file extension or provide stream id\n'
-                '         Example: <path>/file.mp4 | <path>/file.avi | 0, 1, ...',
-                print)
-            sys.exit(1)
+                '         Example: <path>/file.mp4 | <path>/file.avi 0,1, ...', print)
+            raise SystemExit(1)
 
         if video_source.isdigit():
             self.video_handler = VideoHandler(int(video_source))

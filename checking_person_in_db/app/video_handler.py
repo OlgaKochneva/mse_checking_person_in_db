@@ -10,7 +10,7 @@ class VideoHandler:
 
         if not self.cap.isOpened():
             msg('err', f'Invalid video stream {video_source}', print)
-            sys.exit(1)
+            raise SystemExit(1)
 
         self.info = {
             'fps': int(self.cap.get(cv2.CAP_PROP_FPS)),

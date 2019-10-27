@@ -10,6 +10,7 @@ from .utilities import msg
 class FaceFinder:
     def __init__(self):
         self.processed_frames = []
+        self.face_locations_per_frame = []
         self.resize_scale = 0.5
 
     def process(self, video_source):
@@ -28,13 +29,15 @@ class FaceFinder:
 
             face_locations = face_recognition.face_locations(rgb_small_frame)
 
-            for (top, right, bottom, left) in face_locations:
+            for top, right, bottom, left in face_locations:
                 top *= int(1 / self.resize_scale)
                 right *= int(1 / self.resize_scale)
                 bottom *= int(1 / self.resize_scale)
                 left *= int(1 / self.resize_scale)
 
                 cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+
+            self.face_locations_per_frame += [face_locations]
 
             self.processed_frames += [frame]
             frame_count += 1

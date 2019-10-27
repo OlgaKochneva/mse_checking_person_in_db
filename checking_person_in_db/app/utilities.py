@@ -5,4 +5,4 @@ types = {
 
 
 def msg(msg_type, text, log):
-    log(types[msg_type].format(text))
+    log('\r', types[msg_type].format(text), end='')
