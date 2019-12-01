@@ -1,3 +1,5 @@
 opencv-python
 face_recognition
 pytest
+keyboard
+ordered-set

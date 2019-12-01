@@ -8,13 +8,13 @@ We tried to use the best libraries, namely `face_recognition` and `OpenCV`, to c
 Use this application to find faces from video files .avi and .mp4.
 Pass the path to the video file to the program and get output video with
 highlighted in the square frames faces.
- 
+
 ## Installation
 #### Requirements
 | System | Python |
-| :---: | :---: | 
+| :---: | :---: |
 | Ubuntu 18.04 | 3.6+, pip3 |
-            
+
 #### Installation options
 Make sure you have `virtualenv` and `cmake`.
 Install them using:
@@ -34,24 +34,40 @@ Open terminal and follow these steps:
 3. Set up the environment, install dependencies and compile `dlib` for `face_recognition` library:
     ```bash
     ./setup.sh
-    ```     
+    ```
 ## Usage    
 Open terminal and follow these steps:
-1. Activate virtual environment:
+
+1. Log in as root to use keyboard interrupts.
+    
+    ```bash
+    sudo su
+    ```
+    
+2. Activate virtual environment:
+
     ```bash
     source .venv/bin/activate
     ```
-2. Change directory to `checking_person_in_db`:
+
+3. Change directory to `checking_person_in_db`:
     ```bash
     cd checking_person_in_db/
     ```
-3. Execute person_checker.py with video file as commandline argument:
+
+4. Execute person_checker.py with video file as command line argument:
      ```bash
-    python3 ./person_checker.py <path to videofile>
-    ```
-If video is processed succesfully, the message "<filename.avi> created"
-will be displayed in terminal. The output video with found faces
-will be created in directory `resources`.
+     python3 ./person_checker.py <path to videofile>
+     ```
+     If video is processed successfully, the message:
+
+     ```
+     result.avi created
+     report.txt created
+     ```
+
+     will be displayed in terminal. The output video with found faces
+     will be created in directory `videos`, the report will be created in `resources` directory.
 
 ## Contributing
 Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given.

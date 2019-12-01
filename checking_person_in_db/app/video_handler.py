@@ -1,4 +1,3 @@
-import sys
 import cv2
 
 from .utilities import msg
