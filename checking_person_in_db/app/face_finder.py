@@ -32,7 +32,7 @@ class FaceFinder:
                 small_frame = cv2.resize(processed_frame, (0, 0), fx=self.resize_scale, fy=self.resize_scale)
                 rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
 
-                face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=2)
+                face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=1)
                 detected_faces = face_comparer.compare(rgb_small_frame, face_locations)
 
                 current_msec = video_source.cap.get(cv2.CAP_PROP_POS_MSEC)

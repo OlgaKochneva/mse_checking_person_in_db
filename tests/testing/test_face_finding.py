@@ -28,7 +28,7 @@ def test_proper_face_finding(finding_face_data_threshold):
     csv_reader = csv.reader(f, delimiter=',')
     next(csv_reader)
 
-    app = App(testing_video, '../../db_creator/resources/features.pkl')
+    app = App(testing_video)
     app.run()
 
     face_locations_per_frame = app.face_finder.face_locations_per_frame

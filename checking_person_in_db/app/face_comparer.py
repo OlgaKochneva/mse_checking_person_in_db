@@ -1,42 +1,50 @@
-import pickle
+import _pickle
+import heapq
 
 import face_recognition
 import numpy as np
+import recordclass
+
+from .model import Persons
+
+CachedPerson = recordclass.make_dataclass('CachedPerson', ['name', 'face_encodings'])
 
 
 class FaceComparer:
     def __init__(self):
-        self.known_encodings = []
-        self.known_names = []
-
         self.unknown_faces_counter = 0
+        self.tolerance = 0.55
+        self.persons_database = Persons.objects
+        self._persons_cached = set()
 
-        self.tolerance = 0.52
+    def _compare_persons(self, face_data, encoding):
+        names = []
+        for person in face_data:
+            face_distances = face_recognition.face_distance(_pickle.loads(person.face_encodings), encoding)
+            min_dist = np.amin(face_distances)
+            if True in list(face_distances <= self.tolerance):
+                heapq.heappush(names, (min_dist, person.name))
+                self._persons_cached.add(CachedPerson(person.name, person.face_encodings))
 
-    def load_encodings(self, path_to_data):
-        with open(path_to_data, 'rb') as data_file:
-            data = pickle.load(data_file)
+        if len(names) > 0:
+            name = heapq.heappop(names)[1]
+        else:
+            name = None
 
-        self.known_encodings = data['encodings']
-        self.known_names = data['names']
+        return name
 
     def compare(self, frame, locations):
         encodings = face_recognition.face_encodings(frame, locations)
         detected_faces = {}
 
         for index, encoding in enumerate(encodings):
-            matches = face_recognition.compare_faces(self.known_encodings,
-                                                     encoding,
-                                                     tolerance=self.tolerance)
+            name = self._compare_persons(self._persons_cached, encoding)
+            if name is None:
+                name = self._compare_persons(self.persons_database, encoding)
 
-            face_distances = face_recognition.face_distance(self.known_encodings, encoding)
-            best_match_index = np.argmin(face_distances)
-            if matches[best_match_index]:
-                name = self.known_names[best_match_index]
-            else:
+            if name is None:
                 name = f'Unknown{self.unknown_faces_counter}'
-                self.known_encodings += [encoding]
-                self.known_names += [name]
+                self._persons_cached.add(CachedPerson(name=name, face_encodings=_pickle.dumps([encoding])))
                 self.unknown_faces_counter += 1
 
             detected_faces[name] = locations[index]

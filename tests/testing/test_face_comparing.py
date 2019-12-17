@@ -10,8 +10,6 @@ from subprocess import call
 from checking_person_in_db.app import *
 from tests.checking_utilities import *
 
-path_to_features = '../../db_creator/resources/features.pkl'
-
 sys.path.append('../../')
 
 chdir('../test_generators')
@@ -28,7 +26,7 @@ def test_proper_face_comparing(compare_data_threshold):
     testing_img, path_to_dataset, threshold = compare_data_threshold
 
     face_comparer = FaceComparer()
-    face_comparer.load_encodings(path_to_features)
+    face_comparer.tolerance = 0.52
 
     f = open(path_to_dataset)
     csv_reader = csv.reader(f, delimiter=',')

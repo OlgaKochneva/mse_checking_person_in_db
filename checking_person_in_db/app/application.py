@@ -8,7 +8,7 @@ from .video_handler import VideoHandler
 
 
 class App:
-    def __init__(self, video_source, path_to_features='../db_creator/resources/features.pkl'):
+    def __init__(self, video_source):
         if re.match(r'((.*\.(mp4|avi)$|\d+))', video_source) is None:
             msg('err',
                 'Please, specify the file extension or provide stream id\n'
@@ -22,8 +22,6 @@ class App:
 
         self.face_finder = FaceFinder()
         self.face_comparer = FaceComparer()
-
-        self.face_comparer.load_encodings(path_to_features)
 
     def run(self):
         self.face_finder.process(self.video_handler, self.face_comparer)
