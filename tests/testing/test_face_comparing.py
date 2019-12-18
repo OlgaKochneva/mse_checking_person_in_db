@@ -50,7 +50,7 @@ def test_proper_face_comparing(compare_data_threshold):
 
     for i, name in enumerate(result_names):
         correct_name = sorted_names[i]
-        if name == 'Unknown':
+        if name.startswith('Unknown'):
             quality -= len(result)
         else:
             # check if name is correct and in the right place
