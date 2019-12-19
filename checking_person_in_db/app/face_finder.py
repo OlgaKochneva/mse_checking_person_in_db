@@ -1,17 +1,20 @@
 import os
+import sys
 
 import cv2
 import face_recognition
 import keyboard
 
-from .utilities import msg, handle_faces_presence
 from .report import Report
+from .utilities import msg, handle_faces_presence, spinning_cursor
+
 
 class FaceFinder:
     def __init__(self):
         self.face_locations_per_frame = []
         self.resize_scale = 0.5
         self.skip_frames_num = 5
+        self.upsample_num = 1
 
     def process(self, video_source, face_comparer):
         settings = video_source.settings()
@@ -21,18 +24,24 @@ class FaceFinder:
         ret, frame = video_source.read()
         prev_frame_faces = []
         report = Report()
+        spinner = spinning_cursor()
         while ret:
             if keyboard.is_pressed('q'):
                 break
 
             if frame_count % self.skip_frames_num == 0:
-                msg('progress', f'{(frame_count * 100 / settings["length"]):.1f}%', print)
+                if settings["length"] > 0:
+                    msg('progress', f'{(frame_count * 100 / settings["length"]):.1f}%', sys.stdout.write)
+                else:
+                    msg('progress', f'{next(spinner)}', sys.stdout.write)
+                sys.stdout.write('\r')
 
                 processed_frame = frame.copy()
                 small_frame = cv2.resize(processed_frame, (0, 0), fx=self.resize_scale, fy=self.resize_scale)
                 rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
 
-                face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=1)
+                face_locations = face_recognition.face_locations(rgb_small_frame,
+                                                                 number_of_times_to_upsample=self.upsample_num)
                 detected_faces = face_comparer.compare(rgb_small_frame, face_locations)
 
                 current_msec = video_source.cap.get(cv2.CAP_PROP_POS_MSEC)
@@ -64,8 +73,9 @@ class FaceFinder:
     # 1st iteration result
     def create_tracked_video(self, video_info):
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        fps = video_info['fps'] // self.skip_frames_num
         video_tracked = cv2.VideoWriter(f'{os.path.abspath("../videos/result.avi")}',
                                         fourcc,
-                                        video_info['fps'] // self.skip_frames_num if video_info["length"] != -1 else 10,
+                                        fps if video_info["length"] != -1 else fps//3,
                                         (video_info['width'], video_info['height']))
         return video_tracked
