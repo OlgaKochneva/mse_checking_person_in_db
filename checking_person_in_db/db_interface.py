@@ -1,4 +1,5 @@
 import _pickle
+import glob
 import os
 import re
 
@@ -11,31 +12,32 @@ def insert_many_persons(path_to_train_dir):  # change path
     count_persons = len(train_dir)
     person_counter = 0
     train_dir = os.listdir(path_to_train_dir)
-    print(f'{count_persons} of people have been processed (0.0%)', end='')
+    print(f'0/{count_persons} of people have been processed (0%)')
 
     for path_to_person_dir in train_dir:
-        insert_one_person(path_to_person_dir, path_to_train_dir + path_to_person_dir)
         person_counter += 1
         print(f'{person_counter}/{count_persons} '
-              f'of people have been processed ({person_counter / count_persons * 100: .0f}%) ', end='')
+              f'of people have been processed ({person_counter / count_persons * 100:.0f}%) ', end=' ')
+        insert_one_person(path_to_person_dir, path_to_train_dir + path_to_person_dir)
 
 
 def insert_one_person(name, path_to_person_dir):
-    try:
-        paths_to_person_imgs = os.listdir(path_to_person_dir)
-    except FileNotFoundError:
+    if not os.path.exists(path_to_person_dir) or not os.path.isdir(path_to_person_dir):
         print(f'No such file or directory: {path_to_person_dir}')
-        exit(0)
+        return
+
+    pattern = '|'.join(['.jpg', '.png'])
+    paths_to_person_imgs = glob.glob(f'{path_to_person_dir}/*[{pattern}]')
+
+    if not paths_to_person_imgs:
+        print(f'{path_to_person_dir} doesn\'t contain images with supported formats: .jpg, .png')
+        return
 
     persons = Persons.objects(name=name)
     encodings = _pickle.loads(persons[0].face_encodings) if persons else []
 
-# TODO Add regex expression for jpg, png etc files for this line
-#   face = face_recognition.load_image_file(path_to_person_dir + '/' + path_to_person_img)
-
     for path_to_person_img in paths_to_person_imgs:
-        face = face_recognition.load_image_file(
-            path_to_person_dir + '/' + path_to_person_img)
+        face = face_recognition.load_image_file(path_to_person_img)
         face_bounding_boxes = face_recognition.face_locations(face)
 
         if len(face_bounding_boxes) == 1:
@@ -69,9 +71,7 @@ def show_persons():
 if __name__ == '__main__':
     # delete_person()
     show_persons()
-    # insert_one_person('Morgan_Freeman', '../resources/train/Morgan_Freeman')
-    # show_persons()
-    # delete_person("Morgan_Freeman")
-    # show_persons()
+    # delete_person('Elon_Musk')
+    # insert_one_person('Elon_Musk', '../resources/train/Elon_Musk')
     # insert_many_persons('../resources/train/')
     # show_persons()
