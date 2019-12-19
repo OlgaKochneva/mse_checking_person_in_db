@@ -5,3 +5,4 @@ keyboard
 ordered-set
 mongoengine
 recordclass
+click

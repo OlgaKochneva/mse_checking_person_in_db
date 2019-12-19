@@ -29,3 +29,8 @@ def format_time(ms):
     return f'{min:02d}:{sec:02.0f}.{msec:03.0f}'
 
 
+# spinner for video capture from cam
+def spinning_cursor():
+    while True:
+        for cursor in '|/-\\':
+            yield cursor
