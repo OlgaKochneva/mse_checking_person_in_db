@@ -3,6 +3,7 @@ import glob
 import os
 import re
 
+import click
 import face_recognition
 from app.model import Persons
 
@@ -18,7 +19,7 @@ def insert_many_persons(path_to_train_dir):  # change path
         person_counter += 1
         print(f'{person_counter}/{count_persons} '
               f'of people have been processed ({person_counter / count_persons * 100:.0f}%) ', end=' ')
-        insert_one_person(path_to_person_dir, path_to_train_dir + path_to_person_dir)
+        insert_one_person(path_to_person_dir, path_to_train_dir + '/' + path_to_person_dir)
 
 
 def insert_one_person(name, path_to_person_dir):
@@ -28,6 +29,7 @@ def insert_one_person(name, path_to_person_dir):
 
     pattern = '|'.join(['.jpg', '.png'])
     paths_to_person_imgs = glob.glob(f'{path_to_person_dir}/*[{pattern}]')
+    paths_to_person_imgs = list(filter(lambda path: not os.path.isdir(path), paths_to_person_imgs))
 
     if not paths_to_person_imgs:
         print(f'{path_to_person_dir} doesn\'t contain images with supported formats: .jpg, .png')
@@ -68,10 +70,52 @@ def show_persons():
         print("No persons in db")
 
 
+def get_name(ctx, param, is_needed):
+    if is_needed:
+        name = ctx.params.get('name')
+        if not name:
+            name = click.prompt('Name')
+        return name
+
+
+def get_path(ctx, param, is_needed):
+    if is_needed:
+        path = ctx.params.get('path')
+        if not path:
+            path = click.prompt('Path')
+        return path
+
+
+def get_all(ctx, param, is_needed):
+    name = get_name(ctx, param, is_needed)
+    path = get_path(ctx, param, is_needed)
+    return name, path
+
+
+@click.command()
+@click.option('--list', '-l', 'show', is_flag=True, help='List of persons in db')
+@click.option('--delete', '-d', is_flag=True, callback=get_name, help='Delete person from db,'
+                                                                      ' set name=\'all\' to wipe all data')
+@click.option('--add-group', '-ag', is_flag=True, callback=get_path, help='Add group of persons to db')
+@click.option('--add-person', '-ap', is_flag=True, callback=get_all, help='Add single person to db')
+@click.option('--name', is_eager=True, help='Name of person to add/remove')
+@click.option('--path', is_eager=True, help='Path to image data')
+def main(show, delete, add_group, add_person, name, path):
+    if show:
+        show_persons()
+    elif add_person != (None, None):
+        insert_one_person(*add_person)
+    elif add_group is not None:
+        insert_many_persons(add_group)
+    elif delete is not None:
+        if delete == 'all':
+            if click.confirm('Do you want to erase all data?'):
+                delete_person()
+        else:
+            delete_person(delete)
+    else:
+        print('no flags provided')
+
+
 if __name__ == '__main__':
-    # delete_person()
-    show_persons()
-    # delete_person('Elon_Musk')
-    # insert_one_person('Elon_Musk', '../resources/train/Elon_Musk')
-    # insert_many_persons('../resources/train/')
-    # show_persons()
+    main()
