@@ -2,24 +2,36 @@ import _pickle
 import glob
 import os
 import re
+from multiprocessing import Pool, Lock, Value, cpu_count
+import click
 
 import click
 import face_recognition
 from app.model import Persons
 
 
+def init_process(count_persons_init, person_counter_init, lock_init):
+    global INSERT_MANY
+    INSERT_MANY = True
+    global count_persons
+    count_persons = count_persons_init
+    global person_counter
+    person_counter = person_counter_init  # uint
+    global lock
+    lock = lock_init
+
+
 def insert_many_persons(path_to_train_dir):  # change path
     train_dir = os.listdir(path_to_train_dir)
     count_persons = len(train_dir)
-    person_counter = 0
-    train_dir = os.listdir(path_to_train_dir)
-    print(f'0/{count_persons} of people have been processed (0%)')
+    tasks = [(path_to_person_dir, path_to_train_dir + '/' + path_to_person_dir) for path_to_person_dir in train_dir]
 
-    for path_to_person_dir in train_dir:
-        person_counter += 1
-        print(f'{person_counter}/{count_persons} '
-              f'of people have been processed ({person_counter / count_persons * 100:.0f}%) ', end=' ')
-        insert_one_person(path_to_person_dir, path_to_train_dir + '/' + path_to_person_dir)
+    print(f'0/{count_persons} of people have been processed (0%)')
+    with Pool(processes=cpu_count(), initializer=init_process, initargs=(count_persons, Value('I', 0), Lock())) as pool:
+        pool.starmap(insert_one_person, tasks)
+        
+    pool.close()
+
 
 
 def insert_one_person(name, path_to_person_dir):
@@ -47,7 +59,17 @@ def insert_one_person(name, path_to_person_dir):
             encodings.append(face_enc)
 
     person = Persons(name=name, face_encodings=_pickle.dumps(encodings, protocol=2))
-    person.save()
+
+    if INSERT_MANY:
+        lock.acquire()
+        person.save()
+        person_counter.value += 1
+        print(f'{person_counter.value}/{count_persons} '
+              f'of people have been processed ({person_counter.value / count_persons * 100:.0f}%) ', end='')
+        lock.release()
+    else:
+        person.save()
+
     print(f'{name} successfully added')
 
 
@@ -104,6 +126,8 @@ def main(show, delete, add_group, add_person, name, path):
     if show:
         show_persons()
     elif add_person != (None, None):
+        INSERT_MANY = False
+
         insert_one_person(*add_person)
     elif add_group is not None:
         insert_many_persons(add_group)
@@ -118,4 +142,5 @@ def main(show, delete, add_group, add_person, name, path):
 
 
 if __name__ == '__main__':
+    INSERT_MANY = False
     main()
