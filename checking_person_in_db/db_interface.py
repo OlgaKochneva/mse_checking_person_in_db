@@ -138,7 +138,7 @@ def main(show, delete, add_group, add_person, name, path):
         else:
             delete_person(delete)
     else:
-        print('no flags provided')
+        print('No flags provided')
 
 
 if __name__ == '__main__':

@@ -34,15 +34,16 @@ import csv
 from image_processing.image_processing import *
 
 if __name__ == '__main__':
-    path_to_imgs_people = '../resources/img_people'
-    bg = cv2.imread('../resources/bgs/2.jpg')
-    f = open('../testing/finding_face_testing_dataset.csv', 'w', newline='')
+    path_dir = os.path.abspath(os.path.dirname(__file__))
+    path_to_imgs_people = f'{path_dir}/resources/img_people'
+    bg = cv2.imread(f'{path_dir}/resources/bgs/2.jpg')
+    f = open(f'{path_dir}/../finding_face_testing_dataset.csv', 'w', newline='')
     img_human_scale_factor_range = 0.7, 1
     black_color_threshold = 2
     frame_count = 100
     fps = 2
 
-    video_writer = cv2.VideoWriter(f'{os.path.abspath("../testing/finding_face_testing.avi")}',
+    video_writer = cv2.VideoWriter(f'{path_dir}/../finding_face_testing.avi',
                                             cv2.VideoWriter_fourcc(*'XVID'),
                                             fps,
                                     bg.T.shape[1:])

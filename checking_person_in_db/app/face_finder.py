@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import datetime
 from time import time
 
 import cv2
@@ -16,17 +17,21 @@ class FaceFinder:
         self.resize_scale = 0.5
         self.skip_frames_num = 5
         self.upsample_num = 1
+        self.generate_video = False
+        self.generate_report = False
 
     def process(self, video_source, face_comparer):
         settings = video_source.settings()
         frame_count = 0
-
-        tracked_video = self.create_tracked_video(settings)
+        timestamp = str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
+        if self.generate_video:
+            tracked_video = self.create_tracked_video(settings, timestamp)
+        if self.generate_report:
+            report = Report()
         ret, frame = video_source.read()
         is_stream = settings['length'] <= 0
         start_time = time()
         prev_frame_faces = []
-        report = Report()
         spinner = spinning_cursor()
         while ret:
             if keyboard.is_pressed('q'):
@@ -49,8 +54,6 @@ class FaceFinder:
 
                 current_msec = video_source.cap.get(cv2.CAP_PROP_POS_MSEC) if not is_stream \
                     else (time() - start_time) * 1000
-                report.add(current_msec, *handle_faces_presence(prev_frame_faces, detected_faces))
-                prev_frame_faces = detected_faces
 
                 for name, location in detected_faces.items():
                     top, right, bottom, left = location
@@ -64,22 +67,31 @@ class FaceFinder:
                 self.face_locations_per_frame += [face_locations]
 
                 # later report update instead of write
-                tracked_video.write(frame)
+                if self.generate_video:
+                    tracked_video.write(frame)
+                if self.generate_report:
+                    report.add(current_msec, *handle_faces_presence(prev_frame_faces, detected_faces))
+                prev_frame_faces = detected_faces
 
             frame_count += 1
             ret, frame = video_source.read()
-        msg('progress', 'result.avi created', print)
-        tracked_video.release()
 
-        report.write(os.path.abspath('../resources/report.txt'))
-        msg('progress', 'report.txt created', print)
+        if self.generate_video:
+            tracked_video.release()
+            msg('progress', f'video_{timestamp}.mp4 created', print)
+        if self.generate_report:
+            # generating report at same dir independently from exec point
+            path_dir = os.path.abspath(os.path.dirname(__file__))
+            report.write(f'{path_dir}/../out/report_{timestamp}.txt')
+            msg('progress', f'report_{timestamp}.txt created', print)
 
-    # 1st iteration result
-    def create_tracked_video(self, video_info):
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        fps = video_info['fps'] // self.skip_frames_num
-        video_tracked = cv2.VideoWriter(f'{os.path.abspath("../videos/result.avi")}',
+    def create_tracked_video(self, video_info, timestamp):
+        # generating video at same dir independently from exec point
+        path_dir = os.path.abspath(os.path.dirname(__file__))
+        fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        fps = video_info['fps'] // self.skip_frames_num if self.skip_frames_num > 0 else video_info['fps']
+        video_tracked = cv2.VideoWriter(f'{path_dir}/../out/video_{timestamp}.mp4',
                                         fourcc,
-                                        fps if video_info["length"] != -1 else fps // 3,
+                                        fps if video_info["length"] != -1 else fps // 4,
                                         (video_info['width'], video_info['height']))
         return video_tracked
