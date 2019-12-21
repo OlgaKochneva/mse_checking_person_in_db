@@ -1,5 +1,6 @@
 import os
 import sys
+from time import time
 
 import cv2
 import face_recognition
@@ -22,6 +23,8 @@ class FaceFinder:
 
         tracked_video = self.create_tracked_video(settings)
         ret, frame = video_source.read()
+        is_stream = settings['length'] <= 0
+        start_time = time()
         prev_frame_faces = []
         report = Report()
         spinner = spinning_cursor()
@@ -30,7 +33,7 @@ class FaceFinder:
                 break
 
             if frame_count % self.skip_frames_num == 0:
-                if settings["length"] > 0:
+                if not is_stream:
                     msg('progress', f'{(frame_count * 100 / settings["length"]):.1f}%', sys.stdout.write)
                 else:
                     msg('progress', f'{next(spinner)}', sys.stdout.write)
@@ -44,7 +47,8 @@ class FaceFinder:
                                                                  number_of_times_to_upsample=self.upsample_num)
                 detected_faces = face_comparer.compare(rgb_small_frame, face_locations)
 
-                current_msec = video_source.cap.get(cv2.CAP_PROP_POS_MSEC)
+                current_msec = video_source.cap.get(cv2.CAP_PROP_POS_MSEC) if not is_stream \
+                    else (time() - start_time) * 1000
                 report.add(current_msec, *handle_faces_presence(prev_frame_faces, detected_faces))
                 prev_frame_faces = detected_faces
 
@@ -76,6 +80,6 @@ class FaceFinder:
         fps = video_info['fps'] // self.skip_frames_num
         video_tracked = cv2.VideoWriter(f'{os.path.abspath("../videos/result.avi")}',
                                         fourcc,
-                                        fps if video_info["length"] != -1 else fps//3,
+                                        fps if video_info["length"] != -1 else fps // 3,
                                         (video_info['width'], video_info['height']))
         return video_tracked
