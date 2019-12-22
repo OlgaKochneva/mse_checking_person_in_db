@@ -1,6 +1,6 @@
 ## Running tests
 
-In `testing` use `py.test -v` to run testing and `python clean.py` to clear directory from test generators products.
+Use `py.test -v` or `pytest -v` to run testing and `python clean.py` to clear directory from test generators products.
 
 Tested:
 1) correct behavior of the program if it accepts an invalid format file

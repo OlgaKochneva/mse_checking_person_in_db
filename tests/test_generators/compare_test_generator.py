@@ -6,10 +6,11 @@ import csv
 from image_processing.image_processing import *
 
 if __name__ == '__main__':
-    path_to_compare_people = '../resources/compare_people'
-    bg = cv2.imread('../resources/bgs/2.jpg')
+    path_dir = os.path.abspath(os.path.dirname(__file__))
+    path_to_compare_people = f'{path_dir}/resources/compare_people'
+    bg = cv2.imread(f'{path_dir}/resources/bgs/2.jpg')
 
-    f = open('../testing/compare_testing_dataset.csv', 'w', newline='')
+    f = open(f'{path_dir}/../compare_testing_dataset.csv', 'w', newline='')
 
     img_human_scale_factor_range = 0.7, 1
     black_color_threshold = 2
@@ -45,4 +46,4 @@ if __name__ == '__main__':
         h0 = img_human.shape[1]
 
         csv_writer.writerow([name, x0, w0, y0, h0])
-        cv2.imwrite('../testing/compare_test_image.jpg', pic)
+        cv2.imwrite(f'{path_dir}/../compare_test_image.jpg', pic)
