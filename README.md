@@ -44,10 +44,19 @@ Open terminal and follow these steps:
     ```bash
     cd mse_checking_person_in_db/
     ```
-3. Set up the environment, install dependencies and compile `dlib` for `face_recognition` library:
+3. Set up the environment:
     ```bash
     ./setup.sh
-    ```
+    ```  
+>If `dlib` library has not been installed correctly by pip, install it manually using following set of commands.  
+>In this case, `dlib` would be installed in `~/.dlib` folder.
+>```
+>git clone https://github.com/davisking/dlib.git ~/.dlib  
+>cd ~/.dlib  
+>mkdir build; cd build; cmake ..; cmake --build .  
+>cd ..  
+>python3 setup.py install  
+>```   
 ## Usage
 
 ### Mandatory actions
